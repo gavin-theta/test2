@@ -9,7 +9,7 @@ on:
 jobs:
   build:
 
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
@@ -17,10 +17,10 @@ jobs:
       uses: actions/setup-dotnet@v2
       with:
         dotnet-version: 6.0.x
-        
-    - name: Restore dependencies Client.sln
-      run: dotnet restore
-      
+
+    - name: Restore dependencies
+      run: dotnet restore Client.sln
+
     - name: Build
       run: dotnet build Client.sln --no-restore
       
