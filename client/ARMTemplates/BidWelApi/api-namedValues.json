@@ -1,0 +1,29 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "apimServiceName": {
+      "type": "string"
+    },
+    "keyvaultName": {
+      "type": "string"
+    }
+  },
+  "resources": [
+    {
+      "name": "[concat(parameters('apimServiceName'), '/bidwel-api-functionapp-key')]",
+      "type": "Microsoft.ApiManagement/service/namedValues",
+      "apiVersion": "2020-12-01",
+      "properties": {
+        "tags": [
+          "BidWel-API"
+        ],
+        "secret": true,
+        "displayName": "bidwel-api-functionapp-key",
+        "keyVault": {
+          "secretIdentifier": "[concat('https://', parameters('keyvaultName'), '.vault.azure.net/secrets/bidwel-api-functionapp-key')]"
+        }
+      }
+    }
+  ]
+}

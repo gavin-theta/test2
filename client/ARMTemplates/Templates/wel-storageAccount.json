@@ -1,0 +1,45 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "storageAccountName": {
+        "type": "string"
+      },
+      "storageAccountSkuName": {
+        "type": "string"
+      },
+      "storageAccountSkuTier": {
+        "type": "string"
+      },
+      "storageAccountKind": {
+        "type": "string"
+      }
+    },
+    "variables": {
+    },
+    "resources": [
+      {
+        "type": "Microsoft.Storage/storageAccounts",
+        "apiVersion": "2019-06-01",
+        "name": "[parameters('storageAccountName')]",
+        "location": "[resourceGroup().location]",
+        "sku": {
+          "name": "[parameters('storageAccountSkuName')]",
+          "tier": "[parameters('storageAccountSkuTier')]"
+        },
+        "kind": "[parameters('storageAccountKind')]",
+        "properties": {
+          "networkAcls": {
+            "bypass": "AzureServices",
+            "defaultAction": "Allow",
+            "ipRules": [],
+            "virtualNetworkRules": []
+          },
+          "supportsHttpsTrafficOnly": true,
+          "allowBlobPublicAccess": false
+        }
+      }
+    ],
+    "outputs": {
+    }
+  }

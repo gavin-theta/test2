@@ -1,0 +1,37 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "apimServiceName": {
+            "type": "string"
+        }
+    },
+    "resources": [
+        {
+            "properties": {
+                "description": "Product for BidWel APIs",
+                "subscriptionRequired": true,
+                "approvalRequired": false,
+                "state": "published",
+                "displayName": "bidwelapi"
+            },
+            "name": "[concat(parameters('apimServiceName'), '/bidwelapi')]",
+            "type": "Microsoft.ApiManagement/service/products",
+            "apiVersion": "2019-01-01"
+        },
+        {
+            "properties": {
+                "description": "Administrators is a built-in group. Its membership is managed by the system. Microsoft Azure subscription administrators fall into this group.",
+                "displayName": "Administrators",
+                "type": "system",
+                "builtIn": true
+            },
+            "name": "[concat(parameters('apimServiceName'), '/bidwelapi/administrators')]",
+            "type": "Microsoft.ApiManagement/service/products/groups",
+            "apiVersion": "2019-01-01",
+            "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service/products', parameters('apimServiceName'), 'bidwelapi')]"
+            ]
+        }
+    ]
+}

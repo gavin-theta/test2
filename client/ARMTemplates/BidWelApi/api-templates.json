@@ -1,0 +1,82 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "apimServiceName": {
+      "type": "string"
+    },
+    "functionApp": {
+      "type": "string"
+    }
+  },
+  "resources": [
+    {
+      "properties": {
+        "description": "API to retrieve acknowledged Dispatch Instructions (DI) from the BidWEL system.",
+        "authenticationSettings": {
+          "subscriptionKeyRequired": false
+        },
+        "subscriptionKeyParameterNames": {
+          "header": "Ocp-Apim-Subscription-Key",
+          "query": "subscription-key"
+        },
+        "apiRevision": "1",
+        "apiVersion": "v1",
+        "isCurrent": true,
+        "apiVersionSetId": "[concat(resourceId('Microsoft.ApiManagement/service', parameters('apimServiceName')), '/apiVersionSets/bidwel-api-versionset')]",
+        "subscriptionRequired": true,
+        "displayName": "BidWel API",
+        "path": "bidwelapi",
+        "protocols": [
+          "https"
+        ]
+      },
+      "name": "[concat(parameters('apimServiceName'), '/bidwel-api')]",
+      "type": "Microsoft.ApiManagement/service/apis",
+      "apiVersion": "2019-01-01",
+      "dependsOn": []
+    },
+    {
+      "properties": {
+        "templateParameters": [],
+        "description": "Get historical Dispath Instruction data from database.",
+        "request": {
+          "queryParameters": [],
+          "headers": [],
+          "representations": []
+        },
+        "responses": [],
+        "displayName": "GetDispatchInstructionsData",
+        "method": "GET",
+        "urlTemplate": "/GetDispatchInstructionsData"
+      },
+      "name": "[concat(parameters('apimServiceName'), '/bidwel-api/get-getdispatchinstructionsdata')]",
+      "type": "Microsoft.ApiManagement/service/apis/operations",
+      "apiVersion": "2019-01-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apimServiceName'), 'bidwel-api')]"
+      ]
+    },
+    {
+      "properties": {
+        "value": "[concat('<policies>\r\n  <inbound>\r\n    <base />\r\n    <set-backend-service id=\"apim-generated-policy\" backend-id=\"',parameters('functionApp'), '\" />\r\n  </inbound>\r\n  <backend>\r\n    <base />\r\n  </backend>\r\n  <outbound>\r\n    <base />\r\n  </outbound>\r\n  <on-error>\r\n    <base />\r\n  </on-error>\r\n</policies>')]",
+        "format": "rawxml"
+      },
+      "name": "[concat(parameters('apimServiceName'), '/bidwel-api/get-getdispatchinstructionsdata/policy')]",
+      "type": "Microsoft.ApiManagement/service/apis/operations/policies",
+      "apiVersion": "2019-01-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/apis/operations', parameters('apimServiceName'), 'bidwel-api', 'get-getdispatchinstructionsdata')]"
+      ]
+    },
+    {
+      "properties": {},
+      "name": "[concat(parameters('apimServiceName'), '/bidwelapi/bidwel-api')]",
+      "type": "Microsoft.ApiManagement/service/products/apis",
+      "apiVersion": "2019-01-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apimServiceName'), 'bidwel-api')]"
+      ]
+    }
+  ]
+}

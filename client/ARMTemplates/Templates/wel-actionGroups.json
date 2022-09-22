@@ -1,0 +1,30 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "actionGroupSev3": {
+      "type": "object"
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Insights/actionGroups",
+      "apiVersion": "2019-03-01",
+      "name": "[parameters('actionGroupSev3').groupName]",
+      "location": "Global",
+      "properties": {
+        "groupShortName": "[parameters('actionGroupSev3').groupShortName]",
+        "enabled": true,
+        "smsReceivers": [],
+        "emailReceivers": [
+              {
+                  "name": "[parameters('actionGroupSev3').actionName]",
+                  "emailAddress": "[parameters('actionGroupSev3').emailAddress]",
+                  "useCommonAlertSchema": false
+              }
+        ],
+        "webhookReceivers": []
+      }
+    }
+  ]
+}

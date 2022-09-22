@@ -1,0 +1,59 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "ruleName": {
+      "type": "string"
+    },
+    "appInsightName": {
+            "type": "String"
+    },
+    "actionGroupSev3Name": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "applicationInsightsResourceId": "[resourceId('Microsoft.Insights/Components', parameters('appInsightName'))]",
+    "actionGroupSev3ResourceId": "[resourceId('Microsoft.Insights/actionGroups', parameters('actionGroupSev3Name'))]"
+  },
+  "resources": [
+    {
+        "type": "Microsoft.Insights/metricAlerts",
+        "apiVersion": "2018-03-01",
+        "name": "[parameters('ruleName')]",
+        "location": "global",
+        "properties": {
+            "description": "Heart Beat Failure Alert",
+            "severity": 3,
+            "enabled": true,
+            "scopes": [
+                "[variables('applicationInsightsResourceId')]"
+            ],
+            "evaluationFrequency": "PT1M",
+            "windowSize": "PT1M",
+            "criteria": {
+                "allOf": [
+                    {
+                        "threshold": 1,
+                        "name": "Metric1",
+                        "metricNamespace": "Azure.ApplicationInsights",
+                        "metricName": "ReceiveInstructionsTimer Failures",
+                        "dimensions": [],
+                        "operator": "GreaterThan",
+                        "timeAggregation": "Count",
+                        "criterionType": "StaticThresholdCriterion"
+                    }
+                ],
+                "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+            },
+            "autoMitigate": true,
+            "targetResourceType": "microsoft.insights/components",
+            "actions": [
+                {
+                    "actionGroupId": "[variables('actionGroupSev3ResourceId')]"
+                }
+            ]
+        }
+    }
+  ]
+}

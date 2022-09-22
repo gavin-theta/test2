@@ -1,0 +1,200 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "functionAppName": {
+      "type": "string"
+    },
+    "appServicePlanName": {
+      "type": "string"
+    },
+    "appInsightsName": {
+      "type": "string"
+    },
+    "appServiceStorageAccountName": {
+      "type": "string"
+    },
+    "ackUri": {
+      "type": "string"
+    },
+    "apiKey": {
+      "type": "string"
+    },
+    "certName": {
+      "type": "string"
+    },
+    "kvUrl": {
+      "type": "string"
+    },
+    "sseUri": {
+      "type": "string"
+    },
+    "dbName": {
+      "type": "string"
+    },
+    "serverName": {
+      "type": "string"
+    },
+    "netFrameworkVersion": {
+      "type": "string",
+      "defaultValue": "v6.0"
+    }
+  },
+  "variables": {
+    "appInsightsApiVersion": "2015-05-01"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2018-11-01",
+      "name": "[parameters('functionAppName')]",
+      "location": "[resourceGroup().location]",
+      "kind": "functionapp",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "enabled": true,
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]",
+        "siteConfig": {
+          "appSettings": [
+            {
+              "name": "ACKUri",
+              "value": "[parameters('ackUri')]",
+              "slotSetting": false
+            },
+            {
+              "name": "APIKey",
+              "value": "[parameters('apiKey')]",
+              "slotSetting": false
+            },
+            {
+              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+              "value": "[reference(resourceId('microsoft.insights/components/', parameters('appInsightsName')),  variables('appInsightsApiVersion')).InstrumentationKey]",
+              "slotSetting": false
+            },
+            {
+              "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+              "value": "[concat('InstrumentationKey=', reference(resourceId('microsoft.insights/components/', parameters('appInsightsName')),  variables('appInsightsApiVersion')).InstrumentationKey)]",
+              "slotSetting": false
+            },
+            {
+              "name": "AzureWebJobs.ReceiveInstructionsTimer.Disabled",
+              "value": "0",
+              "slotSetting": false
+            },
+            {
+              "name": "AzureWebJobsStorage",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('appServiceStorageAccountName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('appServiceStorageAccountName')), '2017-06-01').keys[0].value)]",
+              "slotSetting": false
+            },
+            {
+              "name": "CertName",
+              "value": "[parameters('certName')]",
+              "slotSetting": false
+            },
+            {
+              "name": "DatabaseName",
+              "value": "[parameters('dbName')]",
+              "slotSetting": false
+            },
+            {
+              "name": "DBServerName",
+              "value": "[parameters('serverName')]",
+              "slotSetting": false
+            },
+            {
+              "name": "FUNCTIONS_EXTENSION_VERSION",
+              "value": "~4",
+              "slotSetting": false
+            },
+            {
+              "name": "FUNCTIONS_WORKER_RUNTIME",
+              "value": "dotnet",
+              "slotSetting": false
+            },
+            {
+              "name": "KVUrl",
+              "value": "[parameters('kvUrl')]",
+              "slotSetting": false
+            },
+            {
+              "name": "SSEUri",
+              "value": "[parameters('sseUri')]",
+              "slotSetting": false
+            },
+            {
+              "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('appServiceStorageAccountName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('appServiceStorageAccountName')), '2017-06-01').keys[0].value)]",
+              "slotSetting": false
+            },
+            {
+              "name": "WEBSITE_RUN_FROM_PACKAGE",
+              "value": "1",
+              "slotSetting": false
+            }
+          ]
+        },
+        "clientAffinityEnabled": true,
+        "httpsOnly": false
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites/config",
+      "apiVersion": "2018-11-01",
+      "name": "[concat(parameters('functionAppName'), '/web')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', parameters('functionAppName'))]"
+      ],
+      "properties": {
+        "alwaysOn": true,
+        "netFrameworkVersion": "[parameters('netFrameworkVersion')]",
+        "managedPipelineMode": "Integrated",
+        "virtualApplications": [
+          {
+            "virtualPath": "/",
+            "physicalPath": "site\\wwwroot",
+            "preloadEnabled": false
+          }
+        ],
+        "ipSecurityRestrictions": [
+          {
+            "ipAddress": "Any",
+            "action": "Allow",
+            "priority": 1,
+            "name": "Allow all",
+            "description": "Allow all access"
+          }
+        ],
+        "scmIpSecurityRestrictions": [
+          {
+            "ipAddress": "Any",
+            "action": "Allow",
+            "priority": 1,
+            "name": "Allow all",
+            "description": "Allow all access"
+          }
+        ],
+        "scmIpSecurityRestrictionsUseMain": false,
+        "http20Enabled": true,
+        "minTlsVersion": "1.2",
+        "ftpsState": "AllAllowed",
+        "reservedInstanceCount": 0
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites/hostNameBindings",
+      "apiVersion": "2018-11-01",
+      "name": "[concat(parameters('functionAppName'), '/', parameters('functionAppName'), '.azurewebsites.net')]",
+      "location": "Australia East",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', parameters('functionAppName'))]"
+      ],
+      "properties": {
+        "siteName": "[parameters('functionAppName')]",
+        "hostNameType": "Verified"
+      }
+    }
+  ]
+}

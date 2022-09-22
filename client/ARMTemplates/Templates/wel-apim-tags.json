@@ -1,0 +1,27 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "ApimServiceName": {
+        "type": "string"
+      }
+    },
+    "resources": [
+      {
+        "properties": {
+          "displayName": "Acknowledgement"
+        },
+        "name": "[concat(parameters('ApimServiceName'), '/Acknowledgement')]",
+        "type": "Microsoft.ApiManagement/service/tags",
+        "apiVersion": "2019-01-01"
+      },
+      {
+        "properties": {
+          "displayName": "Dispatch Instructions"
+        },
+        "name": "[concat(parameters('ApimServiceName'), '/Dispatch-Instructions')]",
+        "type": "Microsoft.ApiManagement/service/tags",
+        "apiVersion": "2019-01-01"
+      }
+    ]
+  }

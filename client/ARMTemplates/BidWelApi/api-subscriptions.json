@@ -1,0 +1,23 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "apimServiceName": {
+      "type": "string"
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.ApiManagement/service/subscriptions",
+      "apiVersion": "2019-01-01",
+      "name": "[concat(parameters('apimServiceName'), '/bidwelapi')]",
+      "dependsOn": [],
+      "properties": {
+        "scope": "[resourceId('Microsoft.ApiManagement/service/products', parameters('apimServiceName'), 'bidwelapi')]",
+        "displayName": "bidwelapi",
+        "state": "active",
+        "allowTracing": false
+      }
+    }
+  ]
+}

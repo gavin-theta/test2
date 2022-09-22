@@ -1,0 +1,515 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "ApimServiceName": {
+      "type": "string"
+    },
+    "ServiceUrl": {
+      "type": "string"
+    }
+  },
+  "resources": [
+    {
+      "properties": {
+        "description": "This API provides a Web Services channel for Market participants to receive Market System dispatch instructions and acknowledge them.  These APIs can only be used following an enrolment with the System Operator.  Part of enrolment includes modelling the dispatch endpoints the participant wishes to utilize, the Dispatch Groups/Products the participant wishes to 'subscribe' to, to dispatch to those endpoints and the channels over which those products are dispatched.  This API covers dispatching to enrolled endpoints/products over the Web Services channel. Refer to the Integration Pack for further information.",
+        "authenticationSettings": {
+          "subscriptionKeyRequired": false
+        },
+        "subscriptionKeyParameterNames": {
+          "header": "Ocp-Apim-Subscription-Key",
+          "query": "subscription-key"
+        },
+        "apiRevision": "1",
+        "isCurrent": true,
+        "subscriptionRequired": true,
+        "displayName": "Market Dispatch Web Service",
+        "serviceUrl": "[parameters('ServiceUrl')]",
+        "path": "marketdispatch",
+        "protocols": [
+          "https"
+        ]
+      },
+      "name": "[concat(parameters('ApimServiceName'), '/market-dispatch-web-service')]",
+      "type": "Microsoft.ApiManagement/service/apis",
+      "apiVersion": "2019-01-01",
+      "dependsOn": []
+    },
+    {
+      "properties": {
+        "contentType": "application/vnd.ms-azure-apim.swagger.definitions+json",
+        "document": {
+          "value": "{\"DispatchGroupName\":{\"description\":\"Dispatch group name, aka product group name.\",\"type\":\"string\",\"example\":\"energy\",\"enum\":[\"energy\",\"frequency\",\"interruptibleload\",\"voltage\"]},\"Acknowledgement\":{\"description\":\"Representation of a Participant acknowledgement for a given dispatch instruction. Note that the dispatchGroupName and sequenceNumber are required to uniquely identify the corresponding dispatch instruction.\",\"type\":\"object\",\"properties\":{\"ackType\":{\"type\":\"string\",\"description\":\"The type of Acknowledgement. ACK, ACKA, ACKQ corresponds to Receipt Acknowledgement, Intention to Comply with Dispatch and Acknowledged but Queried, respectively.\",\"example\":\"ACKA\",\"enum\":[\"ACK\",\"ACKA\",\"ACKQ\"]},\"dispatchGroupName\":{\"$ref\":\"#/definitions/DispatchGroupName\"},\"sequenceNumber\":{\"type\":\"integer\",\"format\":\"int32\",\"description\":\"Sequence number of the dispatch instruction being acknowledged\"}},\"required\":[\"ackType\",\"dispatchGroupName\",\"sequenceNumber\"]},\"DispatchInstruction\":{\"description\":\"A dispatch instruction holds the current dispatched values for a given dispatch endpoint and product group. Note that ONLY one of the properties: energyDispatch, frequencyDispatch, interruptibleLoadDispatch or voltageDispatch will be present corresponding to the value specified for dispatchGroupName\",\"type\":\"object\",\"required\":[\"correlationId\",\"dispatchGroupName\",\"sequenceNumber\",\"dispatchEndpointOwner\",\"isUserResend\",\"dispatchEndpointName\"],\"properties\":{\"correlationId\":{\"type\":\"string\",\"description\":\"The unique correlation id of this dispatch instruction.\",\"example\":\"889ffe5f-ab14-421a-a83f-38a9598ff61d\"},\"dispatchGroupName\":{\"$ref\":\"#/definitions/DispatchGroupName\"},\"sequenceNumber\":{\"type\":\"integer\",\"format\":\"int32\",\"description\":\"The sequence number is a monotonically increasing value (incrementing by 1) that is unique for each dispatch endpoint and dispatchGroupName combination. i.e. each subscribed dispatchGroupName for a given endpoint has its own sequence number. The sequence number and dispatchGroupName must be included within the dispatch Participant's acknowledgement message to uniquely resolve the dispatch instruction.\",\"example\":299792458},\"dispatchEndpointOwner\":{\"type\":\"string\",\"example\":\"ACME\",\"description\":\"Owner of the dispatch endpoint. This is not necessarily the same as the traderCode defined at the node/block level\"},\"dispatchEndpointName\":{\"type\":\"string\",\"example\":\"acme-endpoint-2\",\"description\":\"The unique dispatch endpoint name for the participant\"},\"isUserResend\":{\"type\":\"boolean\",\"description\":\"Indicator whether this instruction has been resent by an Energy Coordinator (or other user) or not. Note that a 'resend' is an explicit action performed by an Energy Coordinator if, for example, the participant hasn't responded with a business acknowledgement or some other such situation.  Note that a resend is treated as a new dispatch instruction and therefore acquires a new sequence number even though the product content is otherwise the same.  This is different from a system level redelivery attempt (prior to the Market System having received an ACK) where it may retry delivery of the same instruction, with the same sequence number.\",\"example\":false,\"default\":false},\"messageSentTime\":{\"type\":\"string\",\"format\":\"date-time\",\"description\":\"The (ISO 8601 with zone indicator format) date/time dispatch instruction left the Transpower WS\",\"example\":\"2019-06-20T15:49:00.123Z\"},\"energyDispatch\":{\"$ref\":\"#/definitions/EnergyDispatch\"},\"frequencyDispatch\":{\"$ref\":\"#/definitions/FrequencyDispatch\"},\"interruptibleLoadDispatch\":{\"$ref\":\"#/definitions/InterruptibleLoadDispatch\"},\"voltageDispatch\":{\"$ref\":\"#/definitions/VoltageDispatch\"}},\"example\":{\"correlationId\":\"889ffe5f-ab14-421a-a83f-38a9598ff61d\",\"dispatchGroupName\":\"energy\",\"sequenceNumber\":299792458,\"dispatchEndpointOwner\":\"ACME\",\"dispatchEndpointName\":\"acme-endpoint-2\",\"isUserResend\":false,\"energyDispatch\":{\"blocks\":[{\"name\":\"ACME_BLK\",\"traderCode\":\"ACME\",\"primaryValues\":[{\"dispatchType\":\"MW\",\"dispatchValue\":150,\"dispatchTime\":\"2018-10-16T15:49:00.123Z\",\"dispatchIssueTime\":\"2018-10-16T15:49:00.123Z\",\"secondaryRealValues\":[{\"dispatchType\":\"RUP\",\"dispatchValue\":30}],\"secondaryConstraintValues\":[{\"dispatchType\":\"IG\",\"dispatchValue\":true}]},{\"dispatchType\":\"RESF\",\"dispatchValue\":230.2,\"dispatchTime\":\"2018-10-16T15:39:00.123Z\",\"dispatchIssueTime\":\"2018-10-16T15:39:00.123Z\"},{\"dispatchType\":\"RESS\",\"dispatchValue\":130.2,\"dispatchTime\":\"2018-10-16T15:00:00.123Z\",\"dispatchIssueTime\":\"2018-10-16T15:00:00.123Z\"}],\"nodes\":[{\"name\":\"ACME_1\",\"traderCode\":\"ACME\",\"primaryValues\":[{\"dispatchType\":\"MW\",\"dispatchValue\":50,\"dispatchTime\":\"2018-10-16T15:49:00.123Z\",\"dispatchIssueTime\":\"2018-10-16T15:49:00.123Z\"}]},{\"name\":\"ACME_2\",\"traderCode\":\"ACME\",\"primaryValues\":[{\"dispatchType\":\"MW\",\"dispatchValue\":100,\"dispatchTime\":\"2018-10-16T15:49:00.123Z\",\"dispatchIssueTime\":\"2018-10-16T15:49:00.123Z\"}]}]}],\"nodes\":[{\"name\":\"ACME_3\",\"traderCode\":\"ACME\",\"primaryValues\":[{\"dispatchType\":\"MW\",\"dispatchValue\":65.2,\"dispatchTime\":\"2018-10-16T15:49:00.123Z\",\"dispatchIssueTime\":\"2018-10-16T15:49:00.123Z\"}]}]}}},\"EnergyDispatch\":{\"type\":\"object\",\"description\":\"Representation of the dispatch of the Energy dispatch/product group\",\"properties\":{\"blocks\":{\"type\":\"array\",\"description\":\"Array of (0 or more) Blocks that Energy is being dispatched to\",\"items\":{\"$ref\":\"#/definitions/EnergyBlock\"}},\"nodes\":{\"type\":\"array\",\"description\":\"Array of (0 or more) Blocks that Energy is being dispatched to\",\"items\":{\"$ref\":\"#/definitions/EnergyNode\"}}}},\"EnergyBlock\":{\"type\":\"object\",\"description\":\"Representation of Energy dispatch for a Block\",\"allOf\":[{\"type\":\"object\",\"properties\":{\"nodes\":{\"type\":\"array\",\"description\":\"Array of 0 or more Nodes that comprise the Block\",\"items\":{\"$ref\":\"#/definitions/EnergyNode\"}}}},{\"$ref\":\"#/definitions/EnergyNode\"}]},\"EnergyNode\":{\"type\":\"object\",\"description\":\"Representation of the Energy dispatch for a Node\",\"properties\":{\"name\":{\"type\":\"string\",\"description\":\"The unique name of the node\",\"example\":\"OHAU_1234\"},\"traderCode\":{\"type\":\"string\",\"example\":\"ACME\",\"description\":\"Four letter code of the trader for this node\"},\"primaryValues\":{\"type\":\"array\",\"description\":\"Primary dispatch type values\",\"items\":{\"$ref\":\"#/definitions/PrimaryEnergyValue\"}}},\"required\":[\"name\",\"traderCode\",\"primaryValues\"]},\"PrimaryEnergyValue\":{\"type\":\"object\",\"description\":\"Holds one primary Energy value for a given dispatch node\",\"properties\":{\"dispatchType\":{\"type\":\"string\",\"description\":\"The type of primary Energy value being dispatched.\",\"example\":\"MW\",\"enum\":[\"MW\",\"RESS\",\"RESF\"]},\"dispatchValue\":{\"type\":\"number\",\"format\":\"double\",\"description\":\"The value of the type being dispatched\",\"example\":123.2},\"dispatchTime\":{\"type\":\"string\",\"format\":\"date-time\",\"description\":\"The (ISO 8601 with zone indicator format) date/time the dispatch was generated by the market system\",\"example\":\"2018-10-16T15:49:00.123Z\"},\"dispatchIssueTime\":{\"type\":\"string\",\"format\":\"date-time\",\"description\":\"The (ISO 8601 with zone indicator format) date/time the dispatch was sent by the Market Systems to the Dispatch Participant\",\"example\":\"2018-10-16T15:49:00.123Z\"},\"secondaryRealValues\":{\"type\":\"array\",\"description\":\"Real valued Secondary dispatch type values. Applicable only for MW primary dispatch type\",\"items\":{\"$ref\":\"#/definitions/SecondaryEnergyRealValue\"}},\"secondaryConstraintValues\":{\"type\":\"array\",\"description\":\"Constraint (boolean) dispatch type values. Applicable only for MW primary dispatch type\",\"items\":{\"$ref\":\"#/definitions/SecondaryEnergyConstraintValue\"}}},\"required\":[\"dispatchType\",\"dispatchValue\",\"dispatchTime\",\"secondaryRealValues\",\"secondaryConstraintValues\"]},\"SecondaryEnergyRealValue\":{\"type\":\"object\",\"description\":\"Representation of a secondary dispatch double (floating point) value for a Node\",\"properties\":{\"dispatchType\":{\"type\":\"string\",\"description\":\"The type of secondary dispatch value being dispatched. The rules defining which secondaries may accompany a primary dispatch type are documented elsewhere, not expressed in this model.\",\"example\":\"RRUP\",\"enum\":[\"RUP\",\"RDN\",\"RUPB\",\"RDNB\",\"FRK\",\"SRK\"]},\"dispatchValue\":{\"type\":\"number\",\"format\":\"double\",\"description\":\"The value of the type being dispatched\",\"example\":123.2}},\"required\":[\"dispatchType\",\"dispatchValue\"]},\"SecondaryEnergyConstraintValue\":{\"type\":\"object\",\"description\":\"Representation of a secondary dispatch constraint (boolean) value for a Node\",\"properties\":{\"dispatchType\":{\"type\":\"string\",\"description\":\"The type of secondary dispatch (constraint) value being dispatched. The rules defining which secondaries may accompany a primary dispatch type are documented elsewhere, not expressed in this model. Note IG == Intermittent Generation, GC == Grid Constraint\",\"example\":\"IG\",\"enum\":[\"IG\",\"GC\"]},\"dispatchValue\":{\"type\":\"boolean\",\"description\":\"The value of the type being dispatched\",\"example\":true}},\"required\":[\"dispatchType\",\"dispatchValue\"]},\"FrequencyDispatch\":{\"type\":\"object\",\"description\":\"Representation of the dispatch of the Frequency dispatch/product group\",\"properties\":{\"blocks\":{\"type\":\"array\",\"description\":\"Array of (0 or more) Blocks that Frequency is being dispatched to\",\"items\":{\"$ref\":\"#/definitions/FrequencyNode\"}},\"nodes\":{\"type\":\"array\",\"description\":\"Array of (0 or more) Nodes that Frequency is being dispatched to\",\"items\":{\"$ref\":\"#/definitions/FrequencyNode\"}}}},\"FrequencyNode\":{\"type\":\"object\",\"description\":\"Representation of the Frequency dispatch for a Node or Block\",\"properties\":{\"name\":{\"type\":\"string\",\"description\":\"The unique name of the node\",\"example\":\"OHAU_1234\"},\"traderCode\":{\"type\":\"string\",\"example\":\"ACME\",\"description\":\"Four letter code of the trader for this node\"},\"primaryValues\":{\"type\":\"array\",\"maxItems\":1,\"description\":\"Primary dispatch type values.  Note there is only ever one value for Frequency.\",\"items\":{\"$ref\":\"#/definitions/PrimaryFrequencyValue\"}}},\"required\":[\"name\",\"traderCode\",\"primaryValues\"]},\"PrimaryFrequencyValue\":{\"type\":\"object\",\"description\":\"Holds one primary Frequency value for a given dispatch node\",\"properties\":{\"dispatchType\":{\"type\":\"string\",\"description\":\"The type of primary value being dispatched.\",\"example\":\"FREQ\",\"enum\":[\"FREQ\"]},\"dispatchValue\":{\"type\":\"number\",\"format\":\"double\",\"description\":\"The value of the type being dispatched\",\"example\":50.4},\"secondaryDateTimeValues\":{\"type\":\"array\",\"description\":\"Date/Time valued Secondary dispatch type values\",\"items\":{\"$ref\":\"#/definitions/SecondaryFrequencyDateTimeValue\"}}},\"required\":[\"dispatchType\",\"dispatchValue\",\"dispatchTime\",\"secondaryDateTimeValues\"]},\"SecondaryFrequencyDateTimeValue\":{\"type\":\"object\",\"description\":\"Holds one secondary Frequency value for a given dispatch node\",\"properties\":{\"dispatchType\":{\"type\":\"string\",\"description\":\"The type of secondary value being dispatched.\",\"example\":\"FST\",\"enum\":[\"FST\"]},\"dispatchValue\":{\"type\":\"string\",\"format\":\"date-time\",\"description\":\"The (ISO 8601 with zone indicator format) date/time value of the type being dispatched\",\"example\":\"2018-10-16T15:49:00.123Z\"}},\"required\":[\"dispatchType\",\"dispatchValue\"]},\"InterruptibleLoadDispatch\":{\"type\":\"object\",\"description\":\"Representation of the dispatch of the Interruptible Load dispatch/product group\",\"properties\":{\"blocks\":{\"type\":\"array\",\"description\":\"Array of (0 or more) Blocks that Interruptible Load is being dispatched to\",\"items\":{\"$ref\":\"#/definitions/InterruptibleLoadBlock\"}},\"nodes\":{\"type\":\"array\",\"description\":\"Array of (0 or more) Nodes that Interruptible Load is being dispatched to\",\"items\":{\"$ref\":\"#/definitions/InterruptibleLoadNode\"}}}},\"InterruptibleLoadBlock\":{\"type\":\"object\",\"description\":\"Representation of Interruptible Load dispatch for a Block\",\"allOf\":[{\"type\":\"object\",\"properties\":{\"nodes\":{\"type\":\"array\",\"description\":\"Array of 0 or more Nodes that comprise the Block\",\"items\":{\"$ref\":\"#/definitions/InterruptibleLoadNode\"}}}},{\"$ref\":\"#/definitions/InterruptibleLoadNode\"}]},\"InterruptibleLoadNode\":{\"type\":\"object\",\"description\":\"Representation of the Interruptible Load dispatch for a Node\",\"properties\":{\"name\":{\"type\":\"string\",\"description\":\"The unique name of the node\",\"example\":\"OHAU_1234\"},\"traderCode\":{\"type\":\"string\",\"example\":\"ACME\",\"description\":\"Four letter code of the trader for this node\"},\"primaryValues\":{\"type\":\"array\",\"description\":\"Primary dispatch type values\",\"items\":{\"$ref\":\"#/definitions/InterruptibleLoadValue\"}}},\"required\":[\"name\",\"traderCode\",\"primaryValues\"]},\"InterruptibleLoadValue\":{\"description\":\"Holds one primary Interruptable Load value for a given dispatch node\",\"type\":\"object\",\"properties\":{\"dispatchType\":{\"type\":\"string\",\"description\":\"The type of Interruptable Load value being dispatched.\",\"example\":\"INTF\",\"enum\":[\"INTF\",\"INTS\"]},\"dispatchValue\":{\"type\":\"number\",\"format\":\"double\",\"description\":\"The value of the type being dispatched\",\"example\":123.2},\"dispatchTime\":{\"type\":\"string\",\"format\":\"date-time\",\"description\":\"The (ISO 8601 with zone indicator format) date/time the dispatch was generated by the market system\",\"example\":\"2018-10-16T15:49:00.123Z\"},\"dispatchIssueTime\":{\"type\":\"string\",\"format\":\"date-time\",\"description\":\"The (ISO 8601 with zone indicator format) date/time the dispatch was sent by the Market Systems to the Dispatch Participant\",\"example\":\"2018-10-16T15:49:00.123Z\"}},\"required\":[\"dispatchType\",\"dispatchValue\",\"dispatchTime\"]},\"VoltageDispatch\":{\"type\":\"object\",\"description\":\"Representation of the dispatch of the Voltage dispatch/product group\",\"properties\":{\"blocks\":{\"type\":\"array\",\"description\":\"Array of (0 or more) Blocks that Voltage is being dispatched to\",\"items\":{\"$ref\":\"#/definitions/VoltageNode\"}},\"nodes\":{\"type\":\"array\",\"description\":\"Array of (0 or more) Nodes that Voltage is being dispatched to\",\"items\":{\"$ref\":\"#/definitions/VoltageNode\"}}}},\"VoltageNode\":{\"type\":\"object\",\"description\":\"Representation of the voltage dispatch for a Node or Block\",\"properties\":{\"name\":{\"type\":\"string\",\"description\":\"The unique name of the node\",\"example\":\"OHAU_1234\"},\"traderCode\":{\"type\":\"string\",\"example\":\"ACME\",\"description\":\"Four letter code of the trader for this node\"},\"primaryValues\":{\"type\":\"array\",\"maxItems\":1,\"description\":\"Primary dispatch type values. There is only ever one primary value for a given node at a point in time.\",\"items\":{\"$ref\":\"#/definitions/VoltageDispatchValue\"}}},\"required\":[\"name\",\"traderCode\",\"primaryValues\"]},\"VoltageDispatchValue\":{\"type\":\"object\",\"description\":\"Holds one primary Voltage value for a given dispatch node\",\"properties\":{\"dispatchType\":{\"type\":\"string\",\"description\":\"The type of value being dispatched\",\"example\":\"VOLT\",\"enum\":[\"VOLT\",\"MVAR\"]},\"dispatchValue\":{\"type\":\"number\",\"format\":\"double\",\"description\":\"The value of the type being dispatched\",\"example\":123.2},\"dispatchTime\":{\"type\":\"string\",\"format\":\"date-time\",\"description\":\"The (ISO 8601 with zone indicator format) date/time the dispatch was generated by the market system\",\"example\":\"2018-10-16T15:49:00.123Z\"},\"dispatchIssueTime\":{\"type\":\"string\",\"format\":\"date-time\",\"description\":\"The (ISO 8601 with zone indicator format) date/time the dispatch was sent by the Market Systems to the Dispatch Participant\",\"example\":\"2018-10-16T15:49:00.123Z\"}},\"required\":[\"dispatchType\",\"dispatchValue\",\"dispatchTime\"]},\"DispatchInstructionArray\":{\"type\":\"array\",\"items\":{\"$ref\":\"#/definitions/DispatchInstruction\"}}}"
+        }
+      },
+      "name": "[concat(parameters('ApimServiceName'), '/market-dispatch-web-service/5f8f7a27ac37530aec8711ea')]",
+      "type": "Microsoft.ApiManagement/service/apis/schemas",
+      "apiVersion": "2019-01-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/apis', parameters('ApimServiceName'), 'market-dispatch-web-service')]"
+      ]
+    },
+    {
+      "properties": {
+        "templateParameters": [
+          {
+            "name": "endpoint",
+            "description": "The dispatch endpoint for which the dispatch instruction was sent",
+            "type": "string",
+            "required": true,
+            "values": []
+          }
+        ],
+        "description": "This operation allows a participant to acknowledge one or more dispatch instructions.  An acknowledgement indicates the corresponding dispatch instruction through the combination of dispatch group (product) and sequence number. An Acknowledgement can be an ACK, ACKA or ACKQ corresponding to a Receipt Acknowledgment an Intention to Comply with Dispatch or Querying the Dispatch, respectively. Note that as an additional traceability mechanism, the Correlation-Id header parameter must be set to the correlationId of the corresponding dispatch instruction.",
+        "request": {
+          "description": "The representation of an Acknowledgement corresponding to the dispatch instruction being acknowledged.",
+          "queryParameters": [],
+          "headers": [
+            {
+              "name": "Correlation-Id",
+              "description": "This must be set to the value of the correlationId of the corresponding dispatch instruction",
+              "type": "string",
+              "required": true,
+              "values": []
+            }
+          ],
+          "representations": [
+            {
+              "contentType": "application/json",
+              "schemaId": "5f8f7a27ac37530aec8711ea",
+              "typeName": "Acknowledgement"
+            }
+          ]
+        },
+        "responses": [
+          {
+            "statusCode": 200,
+            "description": "OK",
+            "headers": [],
+            "representations": []
+          },
+          {
+            "statusCode": 400,
+            "description": "Bad Request",
+            "headers": [],
+            "representations": []
+          },
+          {
+            "statusCode": 401,
+            "description": "Unauthorized",
+            "headers": [],
+            "representations": []
+          },
+          {
+            "statusCode": 403,
+            "description": "Forbidden",
+            "headers": [],
+            "representations": []
+          },
+          {
+            "statusCode": 405,
+            "description": "Method Not Allowed",
+            "headers": [],
+            "representations": []
+          },
+          {
+            "statusCode": 500,
+            "description": "Internal Server Error",
+            "headers": [],
+            "representations": []
+          }
+        ],
+        "displayName": "Acknowledge a dispatch instruction",
+        "method": "PUT",
+        "urlTemplate": "/api/v1/dispatch/endpoints/{endpoint}/acknowledgements"
+      },
+      "name": "[concat(parameters('ApimServiceName'), '/market-dispatch-web-service/put-api-v1-dispatch-endpoints-endpoint-acknowledgements')]",
+      "type": "Microsoft.ApiManagement/service/apis/operations",
+      "apiVersion": "2019-01-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/apis', parameters('ApimServiceName'), 'market-dispatch-web-service')]",
+        "[resourceId('Microsoft.ApiManagement/service/apis/schemas', parameters('ApimServiceName'), 'market-dispatch-web-service', '5f8f7a27ac37530aec8711ea')]"
+      ]
+    },
+    {
+      "properties": {
+        "displayName": "Acknowledgement"
+      },
+      "name": "[concat(parameters('ApimServiceName'), '/market-dispatch-web-service/put-api-v1-dispatch-endpoints-endpoint-acknowledgements/Acknowledgement')]",
+      "type": "Microsoft.ApiManagement/service/apis/operations/tags",
+      "apiVersion": "2019-01-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/apis/operations', parameters('ApimServiceName'), 'market-dispatch-web-service', 'put-api-v1-dispatch-endpoints-endpoint-acknowledgements')]"
+      ]
+    },
+    {
+      "properties": {
+        "templateParameters": [
+          {
+            "name": "endpoint",
+            "description": "The dispatch endpoint the Participant wants to receive dispatch instructions for",
+            "type": "string",
+            "required": true,
+            "values": []
+          }
+        ],
+        "description": "This operation establishes a 'long polling' connection with the server and receives dispatch instructions as an event stream.  On first connection, the server will send an array of the most recent dispatch instructions. For Dispatch Groups, other than Voltage, at most one instruction will be sent, whether or not it has been acknowledged. For Voltage the situation is different and all unacknowledged instructions are sent. After that the server will send new instructions as they arrive. This means that, in practice, most of the time the client will receive an array with one dispatch instruction although the client should not constrain itself to expect this behaviour. Each array of Dispatch Instructions is sent as the value of the 'data' property of the event stream.  The client needs only to subscribe to event 'dispatch' to receive the dispatch instruction stream. <p>Refer to https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format for further information on the event stream format.",
+        "request": {
+          "queryParameters": [],
+          "headers": [],
+          "representations": []
+        },
+        "responses": [
+          {
+            "statusCode": 200,
+            "description": "Array of dispatch instructions, at most one per dispatch group (except possibly for Voltage)",
+            "headers": [],
+            "representations": [
+              {
+                "contentType": "text/event-stream",
+                "schemaId": "5f8f7a27ac37530aec8711ea",
+                "typeName": "DispatchInstructionArray"
+              }
+            ]
+          },
+          {
+            "statusCode": 400,
+            "description": "Bad Request",
+            "headers": [],
+            "representations": [
+              {
+                "contentType": "text/event-stream"
+              }
+            ]
+          },
+          {
+            "statusCode": 401,
+            "description": "Unauthorized",
+            "headers": [],
+            "representations": [
+              {
+                "contentType": "text/event-stream"
+              }
+            ]
+          },
+          {
+            "statusCode": 403,
+            "description": "Forbidden",
+            "headers": [],
+            "representations": [
+              {
+                "contentType": "text/event-stream"
+              }
+            ]
+          },
+          {
+            "statusCode": 405,
+            "description": "Method Not Allowed",
+            "headers": [],
+            "representations": [
+              {
+                "contentType": "text/event-stream"
+              }
+            ]
+          },
+          {
+            "statusCode": 429,
+            "description": "Too Many Active Sessions",
+            "headers": [],
+            "representations": [
+              {
+                "contentType": "text/event-stream"
+              }
+            ]
+          },
+          {
+            "statusCode": 500,
+            "description": "Internal Server Error",
+            "headers": [],
+            "representations": [
+              {
+                "contentType": "text/event-stream"
+              }
+            ]
+          }
+        ],
+        "displayName": "Get dispatch instructions for a given endpoint as an event stream.",
+        "method": "GET",
+        "urlTemplate": "/api/v1/dispatch/endpoints/{endpoint}/instructions"
+      },
+      "name": "[concat(parameters('ApimServiceName'), '/market-dispatch-web-service/get-api-v1-dispatch-endpoints-endpoint-instructions')]",
+      "type": "Microsoft.ApiManagement/service/apis/operations",
+      "apiVersion": "2019-01-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/apis', parameters('ApimServiceName'), 'market-dispatch-web-service')]",
+        "[resourceId('Microsoft.ApiManagement/service/apis/schemas', parameters('ApimServiceName'), 'market-dispatch-web-service', '5f8f7a27ac37530aec8711ea')]"
+      ]
+    },
+    {
+      "properties": {
+        "displayName": "Dispatch Instructions"
+      },
+      "name": "[concat(parameters('ApimServiceName'), '/market-dispatch-web-service/get-api-v1-dispatch-endpoints-endpoint-instructions/Dispatch-Instructions')]",
+      "type": "Microsoft.ApiManagement/service/apis/operations/tags",
+      "apiVersion": "2019-01-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/apis/operations', parameters('ApimServiceName'), 'market-dispatch-web-service', 'get-api-v1-dispatch-endpoints-endpoint-instructions')]"
+      ]
+    },
+    {
+      "properties": {
+        "templateParameters": [
+          {
+            "name": "endpoint",
+            "description": "The dispatch endpoint the Participant wants to receive dispatch instructions for",
+            "type": "string",
+            "required": true,
+            "values": []
+          },
+          {
+            "name": "product",
+            "description": "The product/dispatch group the Participant wants to receive dispatch instructions for",
+            "type": "string",
+            "required": true,
+            "values": [
+              "energy",
+              "frequency",
+              "interruptibleload",
+              "voltage"
+            ]
+          }
+        ],
+        "description": "This operation gets, from the server, the most recent dispatch instruction(s), for the given product (dispatch group). For Dispatch Groups, other than Voltage, at most one instruction will be included, whether or not it has been acknowledged. For Voltage the situation is different and all unacknowledged instructions are included.  If the product is not subscribed a 404 Not Found error is returned; if there are no current instructions for the given product a 200 OK is returned with an empty body.",
+        "request": {
+          "queryParameters": [],
+          "headers": [],
+          "representations": []
+        },
+        "responses": [
+          {
+            "statusCode": 200,
+            "description": "Array of dispatch instructions, at most one per dispatch group (except possibly for Voltage)",
+            "headers": [],
+            "representations": [
+              {
+                "contentType": "application/json",
+                "schemaId": "5f8f7a27ac37530aec8711ea",
+                "typeName": "DispatchInstructionArray"
+              }
+            ]
+          },
+          {
+            "statusCode": 400,
+            "description": "Bad Request",
+            "headers": [],
+            "representations": [
+              {
+                "contentType": "application/json"
+              }
+            ]
+          },
+          {
+            "statusCode": 401,
+            "description": "Unauthorized",
+            "headers": [],
+            "representations": [
+              {
+                "contentType": "application/json"
+              }
+            ]
+          },
+          {
+            "statusCode": 403,
+            "description": "Forbidden",
+            "headers": [],
+            "representations": [
+              {
+                "contentType": "application/json"
+              }
+            ]
+          },
+          {
+            "statusCode": 404,
+            "description": "Not Found; No current subscription found for given product for this endpoint",
+            "headers": [],
+            "representations": [
+              {
+                "contentType": "application/json"
+              }
+            ]
+          },
+          {
+            "statusCode": 405,
+            "description": "Method Not Allowed",
+            "headers": [],
+            "representations": [
+              {
+                "contentType": "application/json"
+              }
+            ]
+          },
+          {
+            "statusCode": 500,
+            "description": "Internal Server Error",
+            "headers": [],
+            "representations": [
+              {
+                "contentType": "application/json"
+              }
+            ]
+          }
+        ],
+        "displayName": "Get latest dispatch instruction for given endpoint and product/dispatch group.",
+        "method": "GET",
+        "urlTemplate": "/api/v1/dispatch/endpoints/{endpoint}/instructions/products/{product}/latest"
+      },
+      "name": "[concat(parameters('ApimServiceName'), '/market-dispatch-web-service/get-api-v1-dispatch-endpoints-endpoint-instructions-products-product-latest')]",
+      "type": "Microsoft.ApiManagement/service/apis/operations",
+      "apiVersion": "2019-01-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/apis', parameters('ApimServiceName'), 'market-dispatch-web-service')]",
+        "[resourceId('Microsoft.ApiManagement/service/apis/schemas', parameters('ApimServiceName'), 'market-dispatch-web-service', '5f8f7a27ac37530aec8711ea')]"
+      ]
+    },
+    {
+      "properties": {
+        "displayName": "Dispatch Instructions"
+      },
+      "name": "[concat(parameters('ApimServiceName'), '/market-dispatch-web-service/get-api-v1-dispatch-endpoints-endpoint-instructions-products-product-latest/Dispatch-Instructions')]",
+      "type": "Microsoft.ApiManagement/service/apis/operations/tags",
+      "apiVersion": "2019-01-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/apis/operations', parameters('ApimServiceName'), 'market-dispatch-web-service', 'get-api-v1-dispatch-endpoints-endpoint-instructions-products-product-latest')]"
+      ]
+    },
+    {
+      "properties": {
+        "templateParameters": [
+          {
+            "name": "endpoint",
+            "description": "The dispatch endpoint the Participant wants to receive dispatch instructions for",
+            "type": "string",
+            "required": true,
+            "values": []
+          }
+        ],
+        "description": "This operation gets, from the server, an array of the most recent dispatch instructions.  For Dispatch Groups, other than Voltage, at most one instruction will be included, whether or not it has been acknowledged. For Voltage the situation is different and all unacknowledged instructions are included.",
+        "request": {
+          "queryParameters": [],
+          "headers": [],
+          "representations": []
+        },
+        "responses": [
+          {
+            "statusCode": 200,
+            "description": "Array of dispatch instructions, at most one per dispatch group (except possibly for Voltage)",
+            "headers": [],
+            "representations": [
+              {
+                "contentType": "application/json",
+                "schemaId": "5f8f7a27ac37530aec8711ea",
+                "typeName": "DispatchInstructionArray"
+              }
+            ]
+          },
+          {
+            "statusCode": 400,
+            "description": "Bad Request",
+            "headers": [],
+            "representations": [
+              {
+                "contentType": "application/json"
+              }
+            ]
+          },
+          {
+            "statusCode": 401,
+            "description": "Unauthorized",
+            "headers": [],
+            "representations": [
+              {
+                "contentType": "application/json"
+              }
+            ]
+          },
+          {
+            "statusCode": 403,
+            "description": "Forbidden",
+            "headers": [],
+            "representations": [
+              {
+                "contentType": "application/json"
+              }
+            ]
+          },
+          {
+            "statusCode": 405,
+            "description": "Method Not Allowed",
+            "headers": [],
+            "representations": [
+              {
+                "contentType": "application/json"
+              }
+            ]
+          },
+          {
+            "statusCode": 500,
+            "description": "Internal Server Error",
+            "headers": [],
+            "representations": [
+              {
+                "contentType": "application/json",
+                "sample": "{\"error\": \"Custom Error\"}"
+              }
+            ]
+          }
+        ],
+        "displayName": "Get the latest dispatch instructions for a given endpoint using request/response interaction style.",
+        "method": "GET",
+        "urlTemplate": "/api/v1/dispatch/endpoints/{endpoint}/instructions/latest"
+      },
+      "name": "[concat(parameters('ApimServiceName'), '/market-dispatch-web-service/get-api-v1-dispatch-endpoints-endpoint-instructions-latest')]",
+      "type": "Microsoft.ApiManagement/service/apis/operations",
+      "apiVersion": "2019-01-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/apis', parameters('ApimServiceName'), 'market-dispatch-web-service')]",
+        "[resourceId('Microsoft.ApiManagement/service/apis/schemas', parameters('ApimServiceName'), 'market-dispatch-web-service', '5f8f7a27ac37530aec8711ea')]"
+      ]
+    },
+    {
+      "properties": {
+        "value": "<!--\n    IMPORTANT:\n    - Policy elements can appear only within the <inbound>, <outbound>, <backend> section elements.\n    - To apply a policy to the incoming request (before it is forwarded to the backend service), place a corresponding policy element within the <inbound> section element.\n    - To apply a policy to the outgoing response (before it is sent back to the caller), place a corresponding policy element within the <outbound> section element.\n    - To add a policy, place the cursor at the desired insertion point and select a policy from the sidebar.\n    - To remove a policy, delete the corresponding policy statement from the policy document.\n    - Position the <base> element within a section element to inherit all policies from the corresponding section element in the enclosing scope.\n    - Remove the <base> element to prevent inheriting policies from the corresponding section element in the enclosing scope.\n    - Policies are applied in the order of their appearance, from the top down.\n    - Comments within policy elements are not supported and may disappear. Place your comments between policy elements or at a higher level scope.\n-->\r\n<policies>\r\n\t<inbound>\r\n\t\t<base />\r\n\t\t<set-header name=\"Ocp-Apim-Subscription-Key\" exists-action=\"delete\" />\r\n\t</inbound>\r\n\t<backend>\r\n\t\t<base />\r\n\t</backend>\r\n\t<outbound>\r\n\t\t<base />\r\n\t</outbound>\r\n\t<on-error>\r\n\t\t<base />\r\n\t</on-error>\r\n</policies>",
+        "format": "rawxml"
+      },
+      "name": "[concat(parameters('ApimServiceName'), '/market-dispatch-web-service/get-api-v1-dispatch-endpoints-endpoint-instructions-latest/policy')]",
+      "type": "Microsoft.ApiManagement/service/apis/operations/policies",
+      "apiVersion": "2019-01-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/apis/operations', parameters('ApimServiceName'), 'market-dispatch-web-service', 'get-api-v1-dispatch-endpoints-endpoint-instructions-latest')]"
+      ]
+    },
+    {
+      "properties": {
+        "displayName": "Dispatch Instructions"
+      },
+      "name": "[concat(parameters('ApimServiceName'), '/market-dispatch-web-service/get-api-v1-dispatch-endpoints-endpoint-instructions-latest/Dispatch-Instructions')]",
+      "type": "Microsoft.ApiManagement/service/apis/operations/tags",
+      "apiVersion": "2019-01-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/apis/operations', parameters('ApimServiceName'), 'market-dispatch-web-service', 'get-api-v1-dispatch-endpoints-endpoint-instructions-latest')]"
+      ]
+    },
+    {
+      "properties": {
+        "value": "<!--\n    IMPORTANT:\n    - Policy elements can appear only within the <inbound>, <outbound>, <backend> section elements.\n    - To apply a policy to the incoming request (before it is forwarded to the backend service), place a corresponding policy element within the <inbound> section element.\n    - To apply a policy to the outgoing response (before it is sent back to the caller), place a corresponding policy element within the <outbound> section element.\n    - To add a policy, place the cursor at the desired insertion point and select a policy from the sidebar.\n    - To remove a policy, delete the corresponding policy statement from the policy document.\n    - Position the <base> element within a section element to inherit all policies from the corresponding section element in the enclosing scope.\n    - Remove the <base> element to prevent inheriting policies from the corresponding section element in the enclosing scope.\n    - Policies are applied in the order of their appearance, from the top down.\n    - Comments within policy elements are not supported and may disappear. Place your comments between policy elements or at a higher level scope.\n-->\r\n<policies>\r\n\t<inbound>\r\n\t\t<base />\r\n\t\t<set-header name=\"Ocp-Apim-Subscription-Key\" exists-action=\"delete\" />\r\n\t</inbound>\r\n\t<backend>\r\n\t\t<base />\r\n\t</backend>\r\n\t<outbound>\r\n\t\t<base />\r\n\t</outbound>\r\n\t<on-error>\r\n\t\t<base />\r\n\t</on-error>\r\n</policies>",
+        "format": "rawxml"
+      },
+      "name": "[concat(parameters('ApimServiceName'), '/market-dispatch-web-service/policy')]",
+      "type": "Microsoft.ApiManagement/service/apis/policies",
+      "apiVersion": "2019-01-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/apis', parameters('ApimServiceName'), 'market-dispatch-web-service')]"
+      ]
+    }
+  ]
+}
